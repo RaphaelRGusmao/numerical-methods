@@ -3,13 +3,14 @@
 #       Float precision emulator                            #
 #       by:                                                 #
 #           Pedro Pereira,  nusp. 9778794                   #
-#           Raphael Gusmão, nusp.                           #
+#           Raphael Gusmão, nusp. 9778561                   #
 #                                                           #
 #############################################################
 
 # Makes octave work with 15 decimal places of precision.
 format long;
 
+# Finds exponent of number
 function ret = find_expo(number)
     expo = -127;
     if(number < 0)
@@ -21,6 +22,7 @@ function ret = find_expo(number)
     ret = expo - 1;
 endfunction
 
+# Finds unit in the last place of number
 function ulp = find_ulp(number)
     epsilon = 1 / (2 ^ 23);
     ulp = epsilon * 2 ^ find_expo(number);
