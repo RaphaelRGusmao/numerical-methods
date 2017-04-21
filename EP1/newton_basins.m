@@ -1,19 +1,24 @@
-##################################################
-#                                                #
-#        EP1 - Parte 2: Metodo de Newton         #
-#                                                #
-#        Pedro Pereira     - NUSP 9778794        #
-#        Raphael R. Gusmao - NUSP 9778561        #
-#                                                #
-##################################################
+################################################################################
+#                                                                              #
+#                       EP1 - Parte 2:  Metodo de Newton                       #
+#                                                                              #
+#                       Pedro Pereira     - NUSP 9778794                       #
+#                       Raphael R. Gusmao - NUSP 9778561                       #
+#                                                                              #
+################################################################################
 1;
 
-f = @(x) x.^4 - 1;
-df = @(x) 4*x.^3;
+# Exemplo 1
+f = @(x) (10 + 111i)*x.^6 + 2017
+df = @(x) (60 + 666i)*x.^5
+
+# Exemplo 2
+#f = @(x) (42i)*x.^5 + 21*x.^2
+#df = @(x) (210i)*x.^4 + 42*x
 
 ################################################################################
 function newton_basins(f, df, l, u, p)
-% newton_basins(f, df, la, u, p)
+% newton_basins(f, df, l, u, p)
 %   Acha as bacias de convergencia da funcao f (com  primeira  derivada  df)  no
 %   dominio [l, u]x[l, u] e gera um arquivo output.txt que contem os dados  para
 %   a geracao da imagem das bacias. Os dados gerados preenchem  uma  imagem  com
@@ -43,16 +48,17 @@ function newton_basins(f, df, l, u, p)
 endfunction
 
 ################################################################################
-function [x0] = newton(f, df, x0)
-% [x0] = newton(f, df, x0)
+function [x] = newton(f, df, x0)
+% [x] = newton(f, df, x0)
 %   Aplica o metodo de Newton para achar uma raiz  da  funcao  f  (com  primeira
 %   derivada df), partindo do ponto x0.
     max = 1000;
     atol = 10^-6;
     i = 1;
+    x = x0;
     do
-        prev = x0;
-        x0 = x0 - f(x0)./df(x0);
+        prev = x;
+        x = x - f(x)./df(x);
         i = i + 1;
-    until (i >= max || abs(x0 - prev) < atol)
+    until (i >= max || abs(x - prev) < atol)
 endfunction
