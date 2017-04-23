@@ -1,11 +1,12 @@
-#############################################################
-#                                                           #
-#       Float precision emulator                            #
-#       by:                                                 #
-#           Pedro Pereira,  nusp. 9778794                   #
-#           Raphael Gusmão, nusp. 9778561                   #
-#                                                           #
-#############################################################
+################################################################################
+#                                                                              #
+#                       EP1 - Parte 1:  Emulador de floats                     #
+#                                                                              #
+#                       Pedro Pereira     - NUSP 9778794                       #
+#                       Raphael R. Gusmao - NUSP 9778561                       #
+#                                                                              #
+################################################################################
+
 
 # Makes octave work with 15 decimal places of precision.
 format long;
