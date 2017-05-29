@@ -10,33 +10,33 @@
 
 ################################################################################
 function main()
-    %disp("Escolha um dos metodos abaixo");
-    %disp(" 1: Bilinear");
-    %disp(" 2: Bicubico");
-    %ax = input("Digite ax: "); bx = input("Digite bx: ");
-    %ay = input("Digite ay: "); by = input("Digite by: ");
-    %hx = input("Digite hx: "); hy = input("Digite hy: ");
-    %disp("Escolha uma das funcoes abaixo");
-    %disp(" 1: f(x,y) = xy");
-    %disp(" 2: f(x,y) = x + y");
-    %disp(" 3: f(x,y) = x^2 + y - 2");
-    %nFun = input(" : ");
-    metodo = 2; ax = 0; bx = 3; ay = 0; by = 3; hx = 1; hy = 1; nFun = 2;# Teste
+    disp("Escolha um dos metodos abaixo");
+    disp(" 1: Bilinear");
+    disp(" 2: Bicubico");
+    metodo = input(" : ");
+    ax = input("Digite ax: "); bx = input("Digite bx: ");
+    ay = input("Digite ay: "); by = input("Digite by: ");
+    hx = input("Digite hx: "); hy = input("Digite hy: ");
+    disp("Escolha uma das funcoes abaixo");
+    disp(" 1: f(x,y) = xy");
+    disp(" 2: f(x,y) = x + y");
+    disp(" 3: f(x,y) = x^2 - 2y + 2");
+    nFun = input(" : ");
     
     nx = 1+(bx-ax)/hx; ny = 1+(by-ay)/hy;
     
     f = dxf = dyf = dxyf = 0;
-    if (nFun == 1)
+    if (nFun == 1) # f(x,y) = xy
         f = @(x, y) x.*y;
         dxf = @(x, y) 0*x + y;
         dyf = @(x, y) x + 0*y;
         dxyf = @(x, y) 0*x + 0*y;
-    elseif (nFun == 2)
+    elseif (nFun == 2) # f(x,y) = x + y
         f = @(x, y) x + y;
         dxf = @(x, y) 0*x + 0*y + 1;
         dyf = @(x, y) 0*x + 0*y + 1;
         dxyf = @(x, y) 0*x + 0*y;
-    else % 3
+    else # f(x,y) = x^2 - 2y + 2
         f = @(x, y) x.^2 - 2*y + 2;
         dxf = @(x, y) 2*x;
         dyf = @(x, y) 0*x + 0*y - 2;
@@ -62,16 +62,13 @@ function main()
         endfor
     endfor
     
-    disp("F")
-    disp(F);
-    disp("V")
-    disp(V);
-    disp("F_V")
-    disp(F_V);
-    
-    draw("f", x, y, F);
-    draw("v", x, y, V);
-    draw("|f - v|", x, y, F_V);
+    clf;
+    subplot(2,2,1);
+     draw("f", x, y, F);
+    subplot(2,2,2);
+     draw("v", x, y, V);
+    subplot(2,1,2);
+     draw("|f - v|", x, y, F_V);
 end   
 
 ################################################################################
@@ -153,4 +150,4 @@ function draw(titulo, x, y, F)
     imagesc(x, y, colorMat);
     title(titulo);
     xlabel("x"); ylabel("y");
-end 
+end
