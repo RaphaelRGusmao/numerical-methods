@@ -44,13 +44,13 @@ end
 
 ################################################################################
 # Interpolacao de funcao
-# Recebe input do usuário ou uma função anônima (do estilo f = @(x, y))
-# Imprime os valores da função comprimidos e uma aproximação para os valores reais.
+# Recebe input do usuario ou uma funcao anonima (do estilo f = @(x, y))
+# Imprime os valores da funcao comprimidos e uma aproximacao para os valores reais.
 function interpolaFuncao(f = false,
-                         ax = 0, bx = 10,
-                         ay = 0, by = 10,
-                         hx = 0.5, hy = 0.5,
-                         scale = 5)
+                         ax = 0, bx = 9,
+                         ay = 0, by = 9,
+                         hx = 1, hy = 1,
+                         scale = 10)
     # Entrada dos valores
     if (f == false)
         ax = input("Digite ax: "); bx = input("Digite bx: ");
@@ -71,10 +71,9 @@ function interpolaFuncao(f = false,
         elseif (nFun == 3) # f(x,y) = x^2 - 2y + 2
             f = @(x, y) x.^2 - 2*y + 2;
         else # f(x,y) = sen(x^2) + 3cos(y)
-            f = @(x, y) sin(x^2) + 3*cos(y);
+            f = @(x, y) sin(x.^2) + 3*cos(y);
         endif
     endif
-    % ax = 0; bx = 4; ay = 0; by = 4; hx = 1; hy = 1; nFun = 1; scale = 10; # Teste
 
     # Quantidade de pontos na malha
     nx = 1+(bx-ax)/hx; ny = 1+(by-ay)/hy;
@@ -91,7 +90,7 @@ function interpolaFuncao(f = false,
     coef = constroiv(ax, bx, ay, by, hx, hy, nx, ny, F);
 
     # Inicializa a matriz das aproximacoes v(x,y)
-    V = zeros(nx*scale, ny*scale);
+    V = zeros(ny*scale, nx*scale);
 
     # n*scale pontos da 'malha fina' distribuidos uniformemente entre a e b
     Xs = linspace(ax, bx, nx*scale);
@@ -100,34 +99,35 @@ function interpolaFuncao(f = false,
     # Percorre a 'malha fina' e avalia v em todos os pontos (x,y)
     for i = 1:nx*scale
         for j = 1:ny*scale
-            V(i,j) = avaliav(Xs(i), Ys(j), ax, bx, ay, by, hx, hy, nx, ny, coef);
+            V(j,i) = avaliav(Xs(i), Ys(j), ax, bx, ay, by, hx, hy, nx, ny, coef);
         endfor
     endfor
 
     # Plota f e v
     clf;
+    clf;
     subplot(1,2,1);
-     draw("f", X, Y, F);
+     draw(strcat("f(x,y) - (",num2str(nx),"x",num2str(ny),") pontos"), X, Y, F);
     subplot(1,2,2);
-     draw("v", Xs, Ys, V);
+     draw(strcat("v(x,y) - (",num2str(nx*scale),"x",num2str(ny*scale),") pontos"), Xs, Ys, V);
 end
 
 ################################################################################
 # Handler para a interpolaFuncao
-# Carrega um arquivo na memória, e aplica a interpolação.
+# Carrega um arquivo na memoria, e aplica a interpolacao.
 # O formato do arquivo deve ser exatamente o que o comando "save" gera.
-# exemplo: definidos ax, ay, bx, by, hx, hy, scale e a f no ambiente, é possível
+# exemplo: definidos ax, ay, bx, by, hx, hy, scale e a f no ambiente, eh possivel
 # aplicar o seguinte comando:
 # > save "arquivo.txt" f ax ay bx by hx hy
-# (na ordem que quiser, desde que os nomes das variáveis sejam os mesmos)
-# e, após isso, rodar este handler.
+# (na ordem que quiser, desde que os nomes das variaveis sejam os mesmos)
+# e, apos isso, rodar este handler.
 function interpolaHandler(fileName)
     try
         load fileName;
         interpolaFuncao(f, ax, bx, ay, by, hx, hy, scale);
     catch
         if (strfind(lasterror.message, "load:"))
-            disp("Erro em load: você colocou todas as variáveis no arquivo?");
+            disp("Erro em load: voce colocou todas as variaveis no arquivo?");
             disp(lasterror.message);
         else
             printf("Um erro inesperado aconteceu: ");
@@ -285,17 +285,20 @@ function [dxF, dyF, dxyF] = aproxdf(ax, bx, ay, by, hx, hy, nx, ny, F)
         endfor
     endfor
 
-    # Percorre as extremidades da matriz F
-    i = nx; j = ny;
-    for k = 2:ny-1
-        # Extremidade direita
-        dxF(i,k) = (F(i, k) - F(i-1, k))/hx;
-        dyF(i,k) = (F(i, k) - F(i, k-1))/hy;
-        dxyF(i,k) = (F(i, k) - F(i, k-1) - F(i-1, k) + F(i-1, k-1))/(hx*hy);
-        # Extremidade inferior
-        dxF(k,j) = (F(k, j) - F(k-1, j))/hx;
-        dyF(k,j) = (F(k, j) - F(k, j-1))/hy;
-        dxyF(k,j) = (F(k, j) - F(k, j-1) - F(k-1, j) + F(k-1, j-1))/(hx*hy);
+    # Percorre a extremidade direita da matriz F
+    i = nx;
+    for j = 2:ny-1
+        dxF(i,j) = (F(i, j) - F(i-1, j))/hx;
+        dyF(i,j) = (F(i, j) - F(i, j-1))/hy;
+        dxyF(i,j) = (F(i, j) - F(i, j-1) - F(i-1, j) + F(i-1, j-1))/(hx*hy);
+    endfor
+    
+    # Percorre a extremidade inferior da matriz F
+    j = ny;
+    for i = 2:nx-1
+        dxF(i,j) = (F(i, j) - F(i-1, j))/hx;
+        dyF(i,j) = (F(i, j) - F(i, j-1))/hy;
+        dxyF(i,j) = (F(i, j) - F(i, j-1) - F(i-1, j) + F(i-1, j-1))/(hx*hy);
     endfor
 
     # Ponto da extremidade superior direita
@@ -328,9 +331,9 @@ function draw(titulo, x, y, F)
     nMin = min(min(F));
     nMax = max(max(F));
     #colorMat = ceil(255 .* (F .- nMin)./(nMax + abs(nMin)));
-    colorMat = zeros(length(x), length(y));
-    for i = 1:length(x)
-        for j = 1:length(y)
+    colorMat = zeros(length(y), length(x));
+    for i = 1:length(y)
+        for j = 1:length(x)
             if (nMax != nMin)
                 colorMat(i, j) = ceil(255*(F(i, j) - nMin)/(nMax + abs(nMin)));
             else
