@@ -11,14 +11,31 @@
 ################################################################################
 # Interpolacao de imagem
 function interpolaImagem(fileName = false, scale = 5)
-    # Entrada dos valores caso o arquivo não foi especificado
+    # Entrada dos valores caso o arquivo nao foi especificado
     if (fileName == false)
-        fileName = input("Digite o nome da imagem: ");
-        scale = input("Digite o fator de escala para a descompressao: ");
+        try
+            fileName = input("Digite o nome da imagem: ");
+        catch
+            if (strfind(lasterror.message, "undefined"))
+                disp("O nome do arquivo deve ser entre aspas!");
+                disp("Por favor rode a funcao novamente.");
+            endif
+        end_try_catch
     endif
 
     # Imagem original
-    img = imread(fileName);
+    try
+      img = imread(fileName);
+    catch
+      if (strfind(lasterror.message, "imread"))
+         disp("Erro lendo a imagem!");
+         disp("Tenha certeza que voce inseriu o nome certo.");
+      else
+         disp("Um erro inesperado aconteceu: ");
+         disp(lasterror.message);
+      endif
+      return
+    end_try_catch
     imgX = size(img,2); imgY = size(img,1);
 
     # Comprime a imagem original
@@ -46,45 +63,51 @@ end
 # Interpolacao de funcao
 # Recebe input do usuario ou uma funcao anonima (do estilo f = @(x, y))
 # Imprime os valores da funcao comprimidos e uma aproximacao para os valores reais.
-function interpolaFuncao(f = false,
+function interpolaFuncao(drawDiff = false,
+                         f = false,
+                         scale = 10,
                          ax = 0, bx = 9,
                          ay = 0, by = 9,
-                         hx = 1, hy = 1,
-                         scale = 10)
+                         hx = 1, hy = 1)
     # Entrada dos valores
-    if (f == false)
-        ax = input("Digite ax: "); bx = input("Digite bx: ");
-        ay = input("Digite ay: "); by = input("Digite by: ");
-        hx = input("Digite hx: "); hy = input("Digite hy: ");
-        scale = input("Digite scale: ");
-        disp("Escolha uma das funcoes abaixo");
-        disp(" 1: f(x,y) = xy");
-        disp(" 2: f(x,y) = x + y");
-        disp(" 3: f(x,y) = x^2 - 2y + 2");
-        disp(" 4: f(x,y) = sen(x^2) + 3cos(y)");
-        nFun = input(" : ");
-        # Escolha da funcao
-        if (nFun == 1) # f(x,y) = xy
-            f = @(x, y) x.*y;
-        elseif (nFun == 2) # f(x,y) = x + y
-            f = @(x, y) x + y;
-        elseif (nFun == 3) # f(x,y) = x^2 - 2y + 2
-            f = @(x, y) x.^2 - 2*y + 2;
-        else # f(x,y) = sen(x^2) + 3cos(y)
-            f = @(x, y) sin(x.^2) + 3*cos(y);
-        endif
-    endif
+    try
+      if (f == false)
+          disp("Escolha uma das funcoes abaixo");
+          disp(" 1: f(x,y) = xy");
+          disp(" 2: f(x,y) = x + y");
+          disp(" 3: f(x,y) = x^2 - 2y + 2");
+          disp(" 4: f(x,y) = sen(x^2) + 3cos(y)");
+          nFun = input(" > ");
+          # Escolha da funcao
+          if (nFun == 1) # f(x,y) = xy
+              f = @(x, y) x.*y;
+          elseif (nFun == 2) # f(x,y) = x + y
+              f = @(x, y) x + y;
+          elseif (nFun == 3) # f(x,y) = x^2 - 2y + 2
+              f = @(x, y) x.^2 - 2*y + 2;
+          else # f(x,y) = sen(x^2) + 3cos(y)
+              f = @(x, y) sin(x.^2) + 3*cos(y);
+          endif
+      endif   
+    end_try_catch
 
     # Quantidade de pontos na malha
-    nx = 1+(bx-ax)/hx; ny = 1+(by-ay)/hy;
+    nx = (1+(bx-ax)/hx); ny = (1+(by-ay)/hy);
 
-    # n pontos da 'malha grossa' distribuidos uniformemente entre a e b
+    # n^2 pontos da 'malha grossa' distribuidos uniformemente entre a e b
     X = linspace(ax, bx, nx);
     Y = linspace(ay, by, ny);
 
     # Matriz com os pontos f(x,y)
     [X_, Y_] = meshgrid(X, Y);
     F = f(X_, Y_);
+
+    # pontos distribuidos entre a e b, malha fina, para ver como a funcao
+    # realmente se comporta
+    Xfin = linspace(ax, bx, nx * scale);
+    Yfin = linspace(ay, by, ny * scale);
+    [X_fin, Y_fin] = meshgrid(Xfin, Yfin);
+    Ffin = f(X_fin, Y_fin);
 
     # Matriz dos coeficientes
     coef = constroiv(ax, bx, ay, by, hx, hy, nx, ny, F);
@@ -105,11 +128,47 @@ function interpolaFuncao(f = false,
 
     # Plota f e v
     clf;
-    clf;
-    subplot(1,2,1);
-     draw(strcat("f(x,y) - (",num2str(nx),"x",num2str(ny),") pontos"), X, Y, F);
-    subplot(1,2,2);
-     draw(strcat("v(x,y) - (",num2str(nx*scale),"x",num2str(ny*scale),") pontos"), Xs, Ys, V);
+    if(drawDiff)
+      # Plota com diferenca |f - v|
+      # DIFF = diferenca entre as malhas grossas (pontos de interpolacao)
+      # DIFFfin = diferenca entre as malhas finas (Todos os pontos)
+      DIFF = zeros(ny, nx);
+      DIFFfin = zeros(ny*scale, nx*scale);
+      for i = 1:nx
+        for j = 1:ny
+          # Avalia a diferenca nos pontos de interpolacao: esta deve ser zero
+          DIFF(j, i) = abs(avaliav(X(i), Y(j), ax,bx,ay,by,hx,hy,nx,ny,coef) - f(X(i), Y(j)));
+        endfor
+      endfor
+      # Mostra a diferenca no console: Melhor que gastar espaco do plot
+      # Alem do mais, erros de rounding seriam ampliados no grafico
+      disp("A diferenca de |f - v| nos pontos de interpolacao:");
+      DIFF
+      for i = 1:nx*scale
+        for j = 1:ny*scale
+          # Avalia a diferenca em todos os pontos
+          DIFFfin(j, i) = abs(V(j, i) - Ffin(j, i));
+        endfor
+      endfor
+      printf("A media do erro da interpolacao foi: ");
+      mean(mean(DIFFfin))
+      subplot(2, 2, 1);
+       draw(strcat("f(x, y) - (",num2str(nx*scale),"x",num2str(ny*scale),") pontos"), Xfin, Yfin, Ffin);
+      subplot(2, 2, 2);
+       draw(strcat("f(x,y) - (",num2str(nx),"x",num2str(ny),") pontos"), X, Y, F);
+      subplot(2, 2, 3);
+       draw(strcat("v(x,y) - (",num2str(nx*scale),"x",num2str(ny*scale),") pontos"), Xs, Ys, V);
+      subplot(2, 2, 4);
+       draw(strcat("|f - v| em todos os (",num2str(nx*scale),"x",num2str(ny*scale),") pontos"), Xs, Ys, DIFFfin);      
+    else
+      # Plota sem diferenca |f - v|  
+      subplot(1, 3, 1);
+       draw(strcat("f(x, y) - (",num2str(nx*scale),"x",num2str(ny*scale),") pontos"), Xfin, Yfin, Ffin);
+      subplot(1, 3, 2);
+       draw(strcat("f(x,y) - (",num2str(nx),"x",num2str(ny),") pontos"), X, Y, F);
+      subplot(1, 3, 3);
+       draw(strcat("v(x,y) - (",num2str(nx*scale),"x",num2str(ny*scale),") pontos"), Xs, Ys, V);
+    endif
 end
 
 ################################################################################
@@ -345,4 +404,26 @@ function draw(titulo, x, y, F)
     colormap([c,c,c]);
     imagesc(x, y, colorMat);
     title(titulo); xlabel("x"); ylabel("y");
+end
+
+################################################################################
+# Funcao de demonstracao do programa
+function demo()
+    disp("Vendo a interpolacao de mario.png...");
+    interpolaImagem("mario.png", 2);
+    _ = input("Digite enter para visualizar a proxima funcao: ");
+    disp("Vendo a interpolacao de sgt100.jpg...");
+    interpolaImagem("sgt.jpg", 2);
+    _ = input("Digite enter para visualizar a proxima funcao: ");
+    disp("Vendo a aproximacao da funcao f(x, y) = xy..."); 
+    interpolaFuncao(true, @(x, y) x.*y, 4);
+    _ = input("Digite enter para visualizar a proxima funcao: ");
+    disp("Vendo a aproximacao da funcao f(x, y) = x + y...");
+    interpolaFuncao(true, @(x, y) x + y);
+    _ = input("Digite enter para visualizar a proxima funcao: ");
+    disp("Vendo a aproximacao da funcao f(x, y) = x^2 - 2y + 2...");
+    interpolaFuncao(true, @(x, y) x .^ 2 - 2 * y + 2);
+    _ = input("Digite enter para visualizar a proxima funcao: ");
+    disp("Vendo a aproximacao da funcao f(x, y) = sen(x^2) + 3cos(y)...");
+    interpolaFuncao(true, @(x, y) sin(x.^2) + 3 * cos(y));
 end
