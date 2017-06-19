@@ -501,21 +501,45 @@ end
 ################################################################################
 # Funcao de demonstracao do programa
 function demo()
+    # Imagens
+    display("\nInterpolacao de imagens:");
+    
+    # Mario
     disp("Vendo a interpolacao de mario.png...");
     interpolaImagem("mario.png", 2);
     _ = input("Digite enter para visualizar a proxima funcao: ");
+    
+    # Sgt. Pepper's Lonely Hearts Club Band
     disp("Vendo a interpolacao de sgt100.jpg...");
     interpolaImagem("sgt.jpg", 2);
     _ = input("Digite enter para visualizar a proxima funcao: ");
-    disp("Vendo a aproximacao da funcao f(x, y) = xy..."); 
+    
+    # Funcoes
+    display("\nInterpolacao de funcoes:");
+    display(strcat("  ax = ", num2str(0), ", bx = ", num2str(9)));
+    display(strcat("  ay = ", num2str(0), ", by = ", num2str(9)));
+    
+    # f(x, y) = xy
+    disp("\nVendo a aproximacao da funcao f(x, y) = xy..."); 
     interpolaFuncao(true, @(x, y) x.*y, 4);
     _ = input("Digite enter para visualizar a proxima funcao: ");
-    disp("Vendo a aproximacao da funcao f(x, y) = x + y...");
+    
+    # f(x, y) = x + y
+    disp("\nVendo a aproximacao da funcao f(x, y) = x + y...");
     interpolaFuncao(true, @(x, y) x + y);
     _ = input("Digite enter para visualizar a proxima funcao: ");
-    disp("Vendo a aproximacao da funcao f(x, y) = x^2 - 2y + 2...");
+    
+    # f(x, y) = x^2 - 2y + 2
+    disp("\nVendo a aproximacao da funcao f(x, y) = x^2 - 2y + 2...");
     interpolaFuncao(true, @(x, y) x .^ 2 - 2 * y + 2);
     _ = input("Digite enter para visualizar a proxima funcao: ");
-    disp("Vendo a aproximacao da funcao f(x, y) = sen(x^2) + 3cos(y)...");
+    
+    # f(x, y) = sen(x^2) + 3cos(y)
+    disp("\nVendo a aproximacao da funcao f(x, y) = sen(x^2) + 3cos(y)...");
     interpolaFuncao(true, @(x, y) sin(x.^2) + 3 * cos(y));
+    _ = input("Digite enter para visualizar a proxima funcao: ");
+    
+    # f(x, y) = xy^2 + 4xy + x^2
+    disp("\nVendo a aproximacao da funcao f(x, y) = xy^2 + 4xy + x^2...");
+    interpolaFuncao(true, @(x, y) x.*y.^2 + 4*x.*y + x.^2);
 end
