@@ -385,6 +385,51 @@ function [dxF, dyF, dxyF] = aproxdf(ax, bx, ay, by, hx, hy, nx, ny, F)
 end
 
 ################################################################################
+# Verifica o erro cometido ao aproximar as derivadas numericamente
+function checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, hx, hy)
+    # Quantidade de pontos na malha
+    nx = (1+(bx-ax)/hx); ny = (1+(by-ay)/hy);
+
+    # n^2 pontos da 'malha grossa' distribuidos uniformemente entre a e b
+    X = linspace(ax, bx, nx);
+    Y = linspace(ay, by, ny);
+
+    # Matrizes com os pontos f(x,y) e suas derivadas
+    [X_, Y_] = meshgrid(X, Y);
+    F = f(X_, Y_);
+    dxF = dxf(X_, Y_);
+    dyF = dyf(X_, Y_);
+    dxyF = dxyf(X_, Y_);
+    
+    # Matrizes das aproximacao das derivadas de f
+    [n_dxF, n_dyF, n_dxyF] = aproxdf(ax, bx, ay, by, hx, hy, nx, ny, F);
+    
+    # Inicializa as matrizes dos erros das aproximacoes das derivadas
+    dif_dxF = zeros(nx, ny);
+    dif_dyF = zeros(nx, ny);
+    dif_dxyF = zeros(nx, ny);
+    
+    # Percorre as matrizes e calcula o erro cometido nas aproximacoes
+    for i = 1:nx-1
+        for j = 1:ny-1
+            dif_dxF(i,j)  = abs(dxF(i,j)  - n_dxF(i,j));
+            dif_dyF(i,j)  = abs(dyF(i,j)  - n_dyF(i,j));
+            dif_dxyF(i,j) = abs(dxyF(i,j) - n_dxyF(i,j));
+        endfor
+    endfor
+    
+    # Erro maximo das derivadas
+    e_dxF = max(max(dif_dxF));
+    e_dyF = max(max(dif_dyF));
+    e_dxyF = max(max(dif_dxyF));
+    
+    # Output
+    display(strcat("  max error dxF: ", num2str(e_dxF)))
+    display(strcat("  max error dyF: ", num2str(e_dyF)))
+    display(strcat("  max error dxyF: ", num2str(e_dxyF)))
+end
+
+################################################################################
 # Plota a matriz F em escala de cinza (valores maiores <=> cores mais claras)
 function draw(titulo, x, y, F)
     nMin = min(min(F));
@@ -405,6 +450,41 @@ function draw(titulo, x, y, F)
     imagesc(x, y, colorMat);
     title(titulo); xlabel("x"); ylabel("y");
 end
+
+################################################################################
+# Funcao de demonstracao do programa 2
+function demo2()
+    display("Analisando os erros das aproximacoes das derivadas...\n");
+    ax = 0; bx = 9; ay = 0; by = 9; hx = 1; hy = 1;
+    
+    display("Funcao f(x,y) = xy :");
+    f = @(x, y) x.*y;         # f(x,y)    = xy
+    dxf = @(x, y) 0*x + y;    # dxf(x,y)  = y
+    dyf = @(x, y) x + 0*y;    # dyf(x,y)  = x
+    dxyf = @(x, y) 0*x + 0*y; # dxyf(x,y) = 0
+    checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, hx, hy);
+    
+    display("\nFuncao f(x,y) = x + y :");
+    f = @(x, y) x + y;           # f(x,y)    = x + y
+    dxf = @(x, y) 0*x + 0*y + 1; # dxf(x,y)  = 1
+    dyf = @(x, y) 0*x + 0*y + 1; # dyf(x,y)  = 1
+    dxyf = @(x, y) 0*x + 0*y;    # dxyf(x,y) = 0
+    checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, hx, hy);
+    
+    display("\nFuncao f(x,y) = x^2 - 2y + 2 :");
+    dxf = @(x, y) 2*x;           # f(x,y) = x^2 - 2y + 2
+    dxf = @(x, y) 2*x + 0*y;     # dxf(x,y)  = 2x
+    dyf = @(x, y) 0*x + 0*y - 2; # dyf(x,y)  = -2
+    dxyf = @(x, y) 0*x + 0*y;    # dxyf(x,y) = 0
+    checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, hx, hy);
+    
+    display("\nFuncao f(x,y) = sen(x^2) + 3cos(y) :");
+    f = @(x, y) sin(x.^2) + 3*cos(y);  # f(x,y)    = sen(x^2) + 3cos(y)
+    dxf = @(x, y) 2*x*cos(x.^2) + 0*y; # dxf(x,y)  = 2xcos(x^2)
+    dyf = @(x, y) 0*x - 3*sin(y);      # dyf(x,y)  = -3sin(y)
+    dxyf = @(x, y) 0*x + 0*y;          # dxyf(x,y) = 0
+    checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, hx, hy);    
+end    
 
 ################################################################################
 # Funcao de demonstracao do programa
