@@ -410,8 +410,8 @@ function checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, hx, hy)
     dif_dxyF = zeros(nx, ny);
     
     # Percorre as matrizes e calcula o erro cometido nas aproximacoes
-    for i = 1:nx-1
-        for j = 1:ny-1
+    for i = 1:ny
+        for j = 1:nx
             dif_dxF(i,j)  = abs(dxF(i,j)  - n_dxF(i,j));
             dif_dyF(i,j)  = abs(dyF(i,j)  - n_dyF(i,j));
             dif_dxyF(i,j) = abs(dxyF(i,j) - n_dxyF(i,j));
@@ -424,9 +424,9 @@ function checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, hx, hy)
     e_dxyF = max(max(dif_dxyF));
     
     # Output
-    display(strcat("  max error dxF: ", num2str(e_dxF)))
-    display(strcat("  max error dyF: ", num2str(e_dyF)))
-    display(strcat("  max error dxyF: ", num2str(e_dxyF)))
+    display(strcat("    max error dxF:\t", num2str(e_dxF)))
+    display(strcat("    max error dyF:\t", num2str(e_dyF)))
+    display(strcat("    max error dxyF:\t", num2str(e_dxyF)))
 end
 
 ################################################################################
@@ -452,38 +452,50 @@ function draw(titulo, x, y, F)
 end
 
 ################################################################################
-# Funcao de demonstracao do programa 2
+# Funcao de demonstracao dos erros das aproximacoes das derivadas
 function demo2()
-    display("Analisando os erros das aproximacoes das derivadas...\n");
-    ax = 0; bx = 9; ay = 0; by = 9; hx = 1; hy = 1;
+    display("Analisando os erros das aproximacoes das derivadas...");
+    ax = 0; bx = 9; ay = 0; by = 9;
+    display(strcat("  ax = ", num2str(ax), ", bx = ", num2str(bx)));
+    display(strcat("  ay = ", num2str(ay), ", by = ", num2str(by)));
     
-    display("Funcao f(x,y) = xy :");
-    f = @(x, y) x.*y;         # f(x,y)    = xy
-    dxf = @(x, y) 0*x + y;    # dxf(x,y)  = y
-    dyf = @(x, y) x + 0*y;    # dyf(x,y)  = x
-    dxyf = @(x, y) 0*x + 0*y; # dxyf(x,y) = 0
-    checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, hx, hy);
-    
-    display("\nFuncao f(x,y) = x + y :");
-    f = @(x, y) x + y;           # f(x,y)    = x + y
-    dxf = @(x, y) 0*x + 0*y + 1; # dxf(x,y)  = 1
-    dyf = @(x, y) 0*x + 0*y + 1; # dyf(x,y)  = 1
-    dxyf = @(x, y) 0*x + 0*y;    # dxyf(x,y) = 0
-    checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, hx, hy);
-    
-    display("\nFuncao f(x,y) = x^2 - 2y + 2 :");
-    dxf = @(x, y) 2*x;           # f(x,y) = x^2 - 2y + 2
-    dxf = @(x, y) 2*x + 0*y;     # dxf(x,y)  = 2x
-    dyf = @(x, y) 0*x + 0*y - 2; # dyf(x,y)  = -2
-    dxyf = @(x, y) 0*x + 0*y;    # dxyf(x,y) = 0
-    checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, hx, hy);
-    
+    # f(x,y) = sen(x^2) + 3cos(y)
     display("\nFuncao f(x,y) = sen(x^2) + 3cos(y) :");
-    f = @(x, y) sin(x.^2) + 3*cos(y);  # f(x,y)    = sen(x^2) + 3cos(y)
-    dxf = @(x, y) 2*x*cos(x.^2) + 0*y; # dxf(x,y)  = 2xcos(x^2)
-    dyf = @(x, y) 0*x - 3*sin(y);      # dyf(x,y)  = -3sin(y)
-    dxyf = @(x, y) 0*x + 0*y;          # dxyf(x,y) = 0
-    checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, hx, hy);    
+    f = @(x, y) sin(x.^2) + 3*cos(y);   # f(x,y)    = sen(x^2) + 3cos(y)
+    dxf = @(x, y) 2*x.*cos(x.^2) + 0*y; # dxf(x,y)  = 2xcos(x^2)
+    dyf = @(x, y) 0*x - 3*sin(y);       # dyf(x,y)  = -3sin(y)
+    dxyf = @(x, y) 0*x + 0*y;           # dxyf(x,y) = 0
+    h = 1;
+    display(strcat("  hx = hy = ", num2str(h)));
+    checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, h, h); 
+    h = 0.5;
+    display(strcat("  hx = hy = ", num2str(h)));
+    checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, h, h); 
+    h = 0.25;
+    display(strcat("  hx = hy = ", num2str(h)));
+    checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, h, h); 
+    h = 0.125;
+    display(strcat("  hx = hy = ", num2str(h)));
+    checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, h, h);  
+    
+    # f(x,y) = (x^2 + y^2)^2
+    display("\nFuncao f(x,y) = (x^2 + y^2)^2 :");
+    f = @(x, y) (x.^2 + y.^2).^2;     # f(x,y)    = (x^2 + y^2)^2
+    dxf = @(x, y) 4*(x.^2 + y.^2).*x; # dxf(x,y)  = 4*(x^2 + y^2)*x
+    dyf = @(x, y) 4*(x.^2 + y.^2).*y; # dyf(x,y)  = 4*(x^2 + y^2)*y
+    dxyf = @(x, y) 8*x.*y;            # dxyf(x,y) = 8xy
+    h = 1;
+    display(strcat("  hx = hy = ", num2str(h)));
+    checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, h, h); 
+    h = 0.5;
+    display(strcat("  hx = hy = ", num2str(h)));
+    checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, h, h); 
+    h = 0.25;
+    display(strcat("  hx = hy = ", num2str(h)));
+    checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, h, h); 
+    h = 0.125;
+    display(strcat("  hx = hy = ", num2str(h)));
+    checkDerivatives(f, dxf, dyf, dxyf, ax, bx, ay, by, h, h);  
 end    
 
 ################################################################################
